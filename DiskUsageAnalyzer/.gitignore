@@ -1,0 +1,12 @@
+
+```plaintext
+venv/
+*.pyc
+__pycache__/
+.vscode/
+.idea/
+*.log
+.env
+.DS_Store
+Thumbs.db
+.idea
