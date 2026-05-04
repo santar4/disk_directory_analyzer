@@ -3,36 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вибір диска</title>
+    <title>Аналіз диска</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <div class="container my-5">
-        <h1 class="text-center mb-4">Аналіз використання диска</h1>
-        <form action="/analyze" method="POST" class="card p-4 shadow-sm">
+    <main class="container py-5">
+        <h1 class="mb-4">Аналіз використання диска</h1>
+
+        <form id="scan-form" class="scan-panel">
             <div class="mb-3">
-                <label for="disk_path" class="form-label">Шлях до диска:</label>
-                <input type="text" id="disk_path" name="disk_path" class="form-control" placeholder="Наприклад: C:/">
+                <label for="disk_path" class="form-label">Шлях до диска або папки</label>
+                <input type="text" id="disk_path" name="disk_path" class="form-control" placeholder="Наприклад: C:\Users або D:\" required>
             </div>
-            <div class="mb-3">
-                <label for="file_type" class="form-label">Тип файлів:</label>
-                <select id="file_type" name="file_type" class="form-select">
-                    <option value="all">Всі</option>
-                    <option value=".txt">Текстові файли</option>
-                    <option value=".jpg">Зображення</option>
-                </select>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="extensions" class="form-label">Розширення файлів</label>
+                    <input type="text" id="extensions" name="extensions" class="form-control" placeholder=".txt, .jpg, .pdf">
+                </div>
+                <div class="col-md-6">
+                    <label for="name_query" class="form-label">Пошук у назві</label>
+                    <input type="text" id="name_query" name="name_query" class="form-control" placeholder="report, photo, backup">
+                </div>
+                <div class="col-md-3">
+                    <label for="min_size_mb" class="form-label">Мін. розмір, МБ</label>
+                    <input type="number" step="0.01" min="0" id="min_size_mb" name="min_size_mb" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label for="max_size_mb" class="form-label">Макс. розмір, МБ</label>
+                    <input type="number" step="0.01" min="0" id="max_size_mb" name="max_size_mb" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label">Дата зміни від</label>
+                    <input type="date" id="date_from" name="date_from" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label">Дата зміни до</label>
+                    <input type="date" id="date_to" name="date_to" class="form-control">
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="file_size_filter" class="form-label">Розмір файлів:</label>
-                <select id="file_size_filter" name="file_size_filter" class="form-select">
-                    <option value="">Всі</option>
-                    <option value=">10">Більше 10 ГБ</option>
-                    <option value="<1">Менше 1 ГБ</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Аналізувати</button>
+
+            <button id="scan-button" type="submit" class="btn btn-primary w-100 mt-4">Аналізувати</button>
         </form>
-    </div>
+
+        <section id="progress-panel" class="progress-panel d-none" aria-live="polite">
+            <div class="d-flex justify-content-between mb-2">
+                <strong>Сканування триває</strong>
+                <span id="progress-count">0 файлів</span>
+            </div>
+            <div class="progress" role="progressbar" aria-label="Прогрес сканування">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+            </div>
+            <p id="progress-path" class="progress-path mt-2"></p>
+        </section>
+
+        <div id="error-box" class="alert alert-danger d-none mt-4"></div>
+    </main>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        const form = document.getElementById("scan-form");
+        const scanButton = document.getElementById("scan-button");
+        const progressPanel = document.getElementById("progress-panel");
+        const progressCount = document.getElementById("progress-count");
+        const progressPath = document.getElementById("progress-path");
+        const errorBox = document.getElementById("error-box");
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const formData = Object.fromEntries(new FormData(form).entries());
+
+            errorBox.classList.add("d-none");
+            progressPanel.classList.remove("d-none");
+            scanButton.disabled = true;
+            scanButton.textContent = "Сканування...";
+            progressCount.textContent = "0 файлів";
+            progressPath.textContent = "";
+
+            socket.emit("start_scan", formData);
+        });
+
+        socket.on("scan_progress", (data) => {
+            progressCount.textContent = `${data.scanned_files} проскановано, ${data.matched_files} знайдено`;
+            progressPath.textContent = data.current_path || "";
+        });
+
+        socket.on("scan_finished", (data) => {
+            window.location.href = `/results/${data.scan_id}`;
+        });
+
+        socket.on("scan_error", (data) => {
+            scanButton.disabled = false;
+            scanButton.textContent = "Аналізувати";
+            progressPanel.classList.add("d-none");
+            errorBox.textContent = data.message;
+            errorBox.classList.remove("d-none");
+        });
+    </script>
 </body>
 </html>

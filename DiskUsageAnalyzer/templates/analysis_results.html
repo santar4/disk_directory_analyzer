@@ -8,32 +8,82 @@
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <div class="container my-5">
-        <h1 class="text-center mb-4">Результати аналізу диска: {{ disk_path }}</h1>
-        {% for chart in charts %}
-        <div class="chart-container">
-            {{ chart|safe }}
-        </div>
-        {% endfor %}
-        <a href="/" class="btn btn-secondary w-100 mt-4">Повернутися до вибору диска</a>
-    </div>
+    <main class="container-fluid py-4">
+        {% if error %}
+            <div class="container">
+                <div class="alert alert-danger">{{ error }}</div>
+                <a href="/" class="btn btn-secondary">Повернутися</a>
+            </div>
+        {% else %}
+            <header class="results-header">
+                <div>
+                    <h1>Результати аналізу</h1>
+                    <p class="text-muted mb-0">{{ disk_path }}</p>
+                </div>
+                <div class="export-actions">
+                    <a href="/export/{{ scan_id }}.csv" class="btn btn-outline-primary">CSV</a>
+                    <a href="/export/{{ scan_id }}.json" class="btn btn-outline-primary">JSON</a>
+                    <a href="/" class="btn btn-secondary">Новий аналіз</a>
+                </div>
+            </header>
+
+            <section class="summary-grid">
+                <article>
+                    <span>Проскановано</span>
+                    <strong>{{ scan_result.summary.scanned_files }}</strong>
+                </article>
+                <article>
+                    <span>Знайдено за фільтрами</span>
+                    <strong>{{ scan_result.summary.matched_files }}</strong>
+                </article>
+                <article>
+                    <span>Пропущено</span>
+                    <strong>{{ scan_result.summary.skipped_files }}</strong>
+                </article>
+                <article>
+                    <span>Загальний розмір</span>
+                    <strong>{{ scan_result.summary.total_size_gb }} ГБ</strong>
+                </article>
+            </section>
+
+            {% for chart in charts %}
+                <section class="chart-container">
+                    {{ chart|safe }}
+                </section>
+            {% endfor %}
+
+            <section class="table-section">
+                <h2>Топ 10 найбільших файлів</h2>
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Назва</th>
+                                <th>Розширення</th>
+                                <th>Розмір, МБ</th>
+                                <th>Дата зміни</th>
+                                <th>Повний шлях</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in scan_result.top_files %}
+                                <tr>
+                                    <td>{{ file.name }}</td>
+                                    <td>{{ file.extension }}</td>
+                                    <td>{{ file.size_mb }}</td>
+                                    <td>{{ file.modified_at }}</td>
+                                    <td class="file-path">{{ file.path }}</td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Файлів за вибраними фільтрами не знайдено.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        {% endif %}
+    </main>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
