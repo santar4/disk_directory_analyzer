@@ -44,23 +44,22 @@ This project is designed as a portfolio-friendly local utility: it runs on the u
 
 ## Screenshots
 
-> Add your real screenshots to the `screenshots/` folder and keep the same file names.
 
 ### 1. Scan Form
 
-![Scan Form](screenshots/scan-form.png)
+![Scan Form](screenshots/scan_form.png)
 
-### 2. Scan Progress
+### 2. Top Type Files Table
 
-![Scan Progress](screenshots/scan-progress.png)
+![Scan Progress](screenshots/top_type_files.png)
 
-### 3. Analysis Results
+### 3. Top Type Size Files Table
 
-![Analysis Results](screenshots/analysis-results.png)
+![Analysis Results](screenshots/top_files_by_size.png)
 
 ### 4. Largest Files Table
 
-![Largest Files Table](screenshots/largest-files-table.png)
+![Largest Files Table](screenshots/largest_files_table.png)
 
 ---
 
