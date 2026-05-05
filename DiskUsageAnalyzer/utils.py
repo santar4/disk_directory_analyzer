@@ -157,13 +157,14 @@ def generate_multiple_charts(scan_result):
 
 
 def scan_result_to_csv(scan_result):
+    fieldnames = ["name", "path", "extension", "size_mb", "size_gb", "modified_at", "created_at"]
     output = io.StringIO()
-    writer = csv.DictWriter(
-        output,
-        fieldnames=["name", "path", "extension", "size_mb", "size_gb", "modified_at", "created_at"],
-    )
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
     writer.writeheader()
-    writer.writerows(scan_result.get("top_files", []))
+
+    for file_info in scan_result.get("top_files", []):
+        writer.writerow({field: file_info.get(field, "") for field in fieldnames})
+
     return output.getvalue()
 
 
