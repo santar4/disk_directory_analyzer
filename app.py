@@ -1,9 +1,8 @@
+
 import threading
 import uuid
-
-from flask import Flask, Response, render_template, request
-from flask_socketio import SocketIO
-
+from flask import Response, render_template, request
+from DiskUsageAnalyzer import SCAN_RESULTS, SCAN_ERRORS, socketio, app
 from DiskUsageAnalyzer.utils import (
     analyze_disk,
     generate_multiple_charts,
@@ -12,17 +11,6 @@ from DiskUsageAnalyzer.utils import (
     scan_result_to_json,
 )
 
-
-app = Flask(
-    __name__,
-    template_folder="DiskUsageAnalyzer/templates",
-    static_folder="DiskUsageAnalyzer/static",
-)
-app.config["SECRET_KEY"] = "disk-usage-analyzer"
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
-
-SCAN_RESULTS = {}
-SCAN_ERRORS = {}
 
 
 @app.route("/")
@@ -98,5 +86,6 @@ def _run_scan(scan_id, sid, form_data):
         socketio.emit("scan_error", {"scan_id": scan_id, "message": str(exc)}, to=sid)
 
 
+
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, allow_unsafe_werkzeug=True)
